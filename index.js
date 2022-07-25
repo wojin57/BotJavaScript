@@ -1,0 +1,51 @@
+const fs = require("node:fs");
+const path = require("node:path");
+const { Client, Collection, GatewayIntentBits } = require("discord.js");
+const { token, categoryId, generalChannelId } = require("./config.json");
+const { initGameChannels } = require("./utils.js");
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+client.commands = new Collection();
+const commandsPath = path.join(__dirname, "commands");
+const commandFiles = fs
+    .readdirSync(commandsPath)
+    .filter((file) => file.endsWith(".js"));
+
+for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
+    client.commands.set(command.data.name, command);
+}
+
+client.once("ready", () => {
+    console.log("Ready!");
+    // need to be changed in config.json for real use
+    const category = client.channels.cache.get(categoryId); // Type: [Category]Channel
+    const generalChannel = client.channels.cache.get(generalChannelId); // Type: Channel
+    const roles = category.guild.roles; // Type: RoleManager
+    const bots = category.guild.members.cache.filter(
+        (member) => member.user.bot
+    ); // Type: Collection?
+    let gameChannels = initGameChannels(category, roles, bots); // Type: Array<{ channel: GuildChannel, role: Role }>
+});
+
+client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    const command = client.commands.get(interaction.commandName);
+
+    if (!command) return;
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        await interaction.reply({
+            content: "There was an error while executing this command!",
+            ephemeral: true,
+        });
+    }
+});
+
+client.login(token);
