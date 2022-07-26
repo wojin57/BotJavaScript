@@ -1,23 +1,36 @@
 const { SlashCommandBuilder } = require("discord.js");
+const { addRequest, findRequest } = require("../utils.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("request")
-        .setDescription("Request for creating a new game channel."),
+        .setDescription("Request for creating a new game channel.")
+        .addStringOption((option) =>
+            option
+                .setName("channel_name")
+                .setDescription("Please enter the channel name.")
+                .setRequired(true)
+        )
+        .addStringOption((option) =>
+            option
+                .setName("role_name")
+                .setDescription("Please enter the channel name.")
+                .setRequired(true)
+        ),
     async execute(interaction) {
-        // Using text inputs, ask the user for the name of the channel and the role.
-        await interaction.reply("Pong!");
+        const channel_name = interaction.options.getString("channel_name");
+        const role_name = interaction.options.getString("role_name");
+        const request = findRequest(channel_name);
 
-        // python code for request command
-        // global requests
-
-        // for channel_name in channel_names:
-        //     if request := find_request(channel_name):
-        //         request.users.append(ctx.author)
-        //     else:
-        //         requests.append(
-        //             Request(channel_name, role_name=channel_name, req_user=ctx.author))
-
-        // await ctx.send(f"Your requests are successfully added. Please wait for admin's approval.")
+        if (request) {
+            request.users.push(interaction.user);
+        } else {
+            addRequest({
+                channel_name: channel_name,
+                role_name: role_name,
+                users: [interaction.user],
+            });
+        }
+        await interaction.reply("Your request has been successfully added!");
     },
 };

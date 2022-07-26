@@ -2,7 +2,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token, categoryId, generalChannelId } = require("./config.json");
-const { initGameChannels } = require("./utils.js");
+const {
+    getGameChannels,
+    addGameChannel,
+    initGameChannels,
+} = require("./utils.js");
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -24,10 +28,7 @@ client.once("ready", () => {
     const category = client.channels.cache.get(categoryId); // Type: [Category]Channel
     const generalChannel = client.channels.cache.get(generalChannelId); // Type: Channel
     const roles = category.guild.roles; // Type: RoleManager
-    const bots = category.guild.members.cache.filter(
-        (member) => member.user.bot
-    ); // Type: Collection?
-    let gameChannels = initGameChannels(category, roles, bots); // Type: Array<{ channel: GuildChannel, role: Role }>
+    initGameChannels(category, roles);
 });
 
 client.on("interactionCreate", async (interaction) => {
