@@ -42,6 +42,11 @@ module.exports = {
             }
         }
     },
+    findGameChannels(channel_name) {
+        return gameChannels.find(
+            (gameChannel) => gameChannel.channel.name === channel_name
+        );
+    },
     addChannel(requests, category, request) {
         // create new role
         const role = category.guild.roles
