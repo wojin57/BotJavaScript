@@ -7,24 +7,20 @@ const { getGameChannels, findGameChannels } = require("../utils");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("join")
-        .setDescription(
-            "Joins the game channels.(will be moved to client.once in index.js)"
-        ),
+        .setName("remove")
+        .setDescription("(ADMIN ONLY)Removes the game channels."),
+    //.setDefaultMemberPermissions()
     async execute(interaction) {
         const gameChannels = getGameChannels();
 
         const select_menu = new SelectMenuBuilder()
-            .setCustomId("join_select")
+            .setCustomId("delete_select")
             .setMaxValues(gameChannels.length);
 
         for (const gameChannel of gameChannels) {
             select_menu.addOptions({
                 label: gameChannel.channel.name,
                 value: gameChannel.channel.name,
-                default: interaction.member.roles.cache.some(
-                    (role) => role === gameChannel.role
-                ),
             });
         }
 
@@ -32,25 +28,36 @@ module.exports = {
 
         // await interaction.showActionRow(row);
         await interaction.reply({
-            content: "Select every channel you want to join.",
+            content: "Select every channel you want to delete.",
             components: [row],
         });
 
-        const join_select_filter = (interaction) => {
-            return interaction.customId === "join_select";
+        const delete_select_filter = (interaction) => {
+            return interaction.customId === "delete_select";
         };
 
         const collector = interaction.channel.createMessageComponentCollector({
-            filter: join_select_filter,
+            filter: delete_select_filter,
             time: 60 * 1000,
         });
 
         collector.on("collect", async (interaction) => {
             interaction.values.map((value) => {
                 const gameChannel = findGameChannels(value);
-                interaction.member.roles.add(gameChannel.role);
+                gameChannel.channel
+                    .delete()
+                    .then((deleted) =>
+                        console.log(`Deleted Channel ${deleted.name}`)
+                    )
+                    .error(console.error);
+                gameChannel.role
+                    .delete()
+                    .then((deleted) =>
+                        console.log(`Deleted Role ${deleted.name}`)
+                    )
+                    .error(console.error);
             });
-            await interaction.reply("You successfully joined game channels.");
+            await interaction.reply("You successfully deleted game channels.");
         });
 
         collector.on("end", async (collect) => {

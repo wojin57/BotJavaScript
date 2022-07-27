@@ -10,7 +10,6 @@ const {
 const {
     getRequests,
     findRequest,
-    //createRequestChoices,
     createGameChannel,
     deleteRequest,
 } = require("../utils.js");
@@ -30,15 +29,14 @@ module.exports = {
                     "Please enter the requested channel name to response."
                 )
                 .setRequired(true);
-            getRequests().map((request) => {
+            for (const request of getRequests()) {
                 option.addChoices({
                     name: request.channel_name,
-                    value: request,
+                    value: request.channel_name,
                 });
-            });
+            }
             return option;
         }),
-    //     // getRequests().map((request) => {channel_name: request.channel_name})
     async execute(interaction) {
         const request_channel_name = interaction.options.getString(
             "request_channel_name"

@@ -2,11 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token, categoryId, generalChannelId } = require("./config.json");
-const {
-    getGameChannels,
-    addGameChannel,
-    initGameChannels,
-} = require("./utils.js");
+const { getRequests, initGameChannels, deployCommands } = require("./utils.js");
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -40,6 +36,7 @@ client.on("interactionCreate", async (interaction) => {
 
     try {
         await command.execute(interaction);
+        deployCommands();
     } catch (error) {
         console.error(error);
         await interaction.reply({

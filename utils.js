@@ -1,4 +1,8 @@
-const { PermissionsBitField, ChannelType } = require("discord.js");
+const fs = require("node:fs");
+const path = require("node:path");
+const { REST } = require("@discordjs/rest");
+const { clientId, guildId, token } = require("./config.json");
+const { Routes, PermissionsBitField, ChannelType } = require("discord.js");
 
 let gameChannels = []; // Array<{ channel: GuildChannel, role: Role }>
 let requests = []; // Array<{ channel_name: String, role_name: String, members: Array<Member>} >
@@ -27,7 +31,6 @@ module.exports = {
             (request) => request.channel_name === channel_name
         );
     },
-    createRequestChoices() {},
     initGameChannels(category, roles) {
         for (const channel of category.children.cache.values()) {
             for (const role of roles.cache.values()) {
@@ -88,5 +91,29 @@ module.exports = {
         for (member of request.members) member.roles.add(role);
         // delete the request
         requests.splice(requests.indexOf(request), 1);
+    },
+
+    deployCommands() {
+        const commands = [];
+        const commandsPath = path.join(__dirname, "commands");
+        const commandFiles = fs
+            .readdirSync(commandsPath)
+            .filter((file) => file.endsWith(".js"));
+
+        for (const file of commandFiles) {
+            const filePath = path.join(commandsPath, file);
+            const command = require(filePath);
+            commands.push(command.data.toJSON());
+        }
+
+        const rest = new REST({ version: "10" }).setToken(token);
+
+        rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+            body: commands,
+        })
+            .then(() =>
+                console.log("Successfully registered application commands.")
+            )
+            .catch(console.error);
     },
 };
