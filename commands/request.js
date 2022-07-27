@@ -23,12 +23,12 @@ module.exports = {
         const request = findRequest(channel_name);
 
         if (request) {
-            request.users.push(interaction.user);
+            request.members.push(interaction.member);
         } else {
             addRequest({
                 channel_name: channel_name,
                 role_name: role_name,
-                users: [interaction.user],
+                members: [interaction.member],
             });
         }
         await interaction.reply("Your request has been successfully added!");

@@ -1,7 +1,7 @@
 const { PermissionsBitField, ChannelType } = require("discord.js");
 
 let gameChannels = []; // Array<{ channel: GuildChannel, role: Role }>
-let requests = []; // Array<{ channel_name: String, role_name: String, users: Array<User>} >
+let requests = []; // Array<{ channel_name: String, role_name: String, members: Array<Member>} >
 
 module.exports = {
     getGameChannels() {
@@ -27,6 +27,7 @@ module.exports = {
             (request) => request.channel_name === channel_name
         );
     },
+    createRequestChoices() {},
     initGameChannels(category, roles) {
         for (const channel of category.children.cache.values()) {
             for (const role of roles.cache.values()) {
@@ -47,7 +48,7 @@ module.exports = {
             (gameChannel) => gameChannel.channel.name === channel_name
         );
     },
-    addChannel(requests, category, request) {
+    createGameChannel(category, request) {
         // create new role
         const role = category.guild.roles
             .create({
@@ -83,8 +84,9 @@ module.exports = {
         // update the select menu, reload it
         // channel_manage_select.add_option(label=new_game_channel.channel.name)
 
-        // remove requests global variables
-        for (user of request.users) user.roles.add(role);
-        requests.remove(request);
+        // add the new role to the assigneed members
+        for (member of request.members) member.roles.add(role);
+        // delete the request
+        requests.splice(requests.indexOf(request), 1);
     },
 };

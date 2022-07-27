@@ -14,21 +14,22 @@ module.exports = {
     async execute(interaction) {
         const gameChannels = getGameChannels();
 
-        const row = new ActionRowBuilder();
+        const select_menu = new SelectMenuBuilder()
+            .setCustomId("join_select")
+            .setMaxValues(gameChannels.length);
+
         for (const gameChannel of gameChannels) {
-            row.addComponents(
-                new SelectMenuBuilder()
-                    .setCustomId("join_select")
-                    .setMaxValues(gameChannels.length)
-                    .addOptions({
-                        label: gameChannel.channel.name,
-                        value: gameChannel.channel.name,
-                    })
-            );
+            select_menu.addOptions({
+                label: gameChannel.channel.name,
+                value: gameChannel.channel.name,
+            });
         }
+
+        const row = new ActionRowBuilder().addComponents(select_menu);
+
         // await interaction.showActionRow(row);
         await interaction.reply({
-            content: "Creating select menus...",
+            content: "Select every channel you want to join.",
             components: [row],
         });
 

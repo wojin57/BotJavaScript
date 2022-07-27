@@ -6,7 +6,7 @@ module.exports = {
         .setDescription("Display info about yourself."),
     async execute(interaction) {
         await interaction.reply(
-            `Username: ${interaction.user.username}\nID: ${interaction.user.id}`
+            `Username: ${interaction.member.displayName}\nID: ${interaction.user.id}`
         );
     },
 };
