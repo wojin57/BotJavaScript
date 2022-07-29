@@ -51,36 +51,45 @@ module.exports = {
             (gameChannel) => gameChannel.channel.name === channel_name
         );
     },
-    createGameChannel(category, request) {
+    async createGameChannel(category, request) {
         // create new role
-        const role = category.guild.roles
+        const role = null;
+        category.guild.roles
             .create({
-                name: request.role.name,
+                name: request.role_name,
                 //color: you can change the color of the role, too!
             })
-            .then(console.log)
+            .then(
+                () =>
+                    (role = category.guild.roles.cache.some(
+                        (role) => role.name === request.role_name
+                    ))
+            )
             .error(console.error);
+        console.log(role);
 
         // create new channel
-        const channel = category.guild.channels
-            .create({
-                name: request.channel.name,
-                type: ChannelType.GuildText,
-                permissionOverwrites: [
-                    {
-                        id: category.guild.everyone,
-                        deny: [PermissionsBitField.Flags.ViewChannel],
-                    },
-                    {
-                        id: role,
-                        allow: [PermissionsBitField.Flags.ViewChannel],
-                    },
-                ],
-                parent: category,
-            })
-            .then(console.log())
-            .error(console.error);
-
+        const promise_channel = category.guild.channels.create({
+            name: request.channel_name,
+            type: ChannelType.GuildText,
+            permissionOverwrites: [
+                {
+                    id: category.guild.everyone,
+                    deny: [PermissionsBitField.Flags.ViewChannel],
+                },
+                {
+                    id: role,
+                    allow: [PermissionsBitField.Flags.ViewChannel],
+                },
+            ],
+            parent: category,
+        });
+        // promise_channel
+        //     .then(() => console.log("Successfully created new channel."))
+        //     .error(console.error);
+        const channel = category.guild.channels.cache.some(
+            (channel) => channel.name === request.channel_name
+        );
         // update gameChannel
         gameChannels.push({ channel: channel, role: role });
 

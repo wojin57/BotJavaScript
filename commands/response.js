@@ -51,7 +51,7 @@ module.exports = {
                 action: async (interaction) => {
                     const category =
                         interaction.guild.channels.cache.get(categoryId);
-                    createGameChannel(category, request);
+                    await createGameChannel(category, request);
                     await interaction.reply("You have approved the request.");
                 },
             },

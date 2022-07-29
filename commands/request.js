@@ -1,5 +1,10 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { addRequest, getRequests, findRequest } = require("../utils.js");
+const {
+    addRequest,
+    getRequests,
+    findRequest,
+    findGameChannels,
+} = require("../utils.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -20,6 +25,12 @@ module.exports = {
     async execute(interaction) {
         const channel_name = interaction.options.getString("channel_name");
         const role_name = interaction.options.getString("role_name");
+        // if the channel already exists, ask to join instead...
+        if (findGameChannels(channel_name)) {
+            await interaction.reply("The channel already exists.");
+            return;
+        }
+
         const request = findRequest(channel_name);
 
         if (request) {
