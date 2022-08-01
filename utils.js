@@ -2,7 +2,12 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { REST } = require("@discordjs/rest");
 const { clientId, guildId, token } = require("./config.json");
-const { Routes, PermissionsBitField, ChannelType } = require("discord.js");
+const {
+    Routes,
+    PermissionsBitField,
+    ChannelType,
+    Role,
+} = require("discord.js");
 
 let gameChannels = []; // Array<{ channel: GuildChannel, role: Role }>
 let requests = []; // Array<{ channel_name: String, role_name: String, members: Array<Member>} >
@@ -51,57 +56,43 @@ module.exports = {
             (gameChannel) => gameChannel.channel.name === channel_name
         );
     },
+    // async really needed..?
     async createGameChannel(category, request) {
+        let newRole = null,
+            newChannel = null;
         // create new role
-        const role = null;
         category.guild.roles
             .create({
                 name: request.role_name,
                 //color: you can change the color of the role, too!
             })
-            .then(
-                () =>
-                    (role = category.guild.roles.cache.some(
-                        (role) => role.name === request.role_name
-                    ))
-            )
-            .error(console.error);
-        console.log(role);
+            .then((role) => {
+                newRole = role;
+                // create new channel
+                const channelPromise = category.guild.channels.create({
+                    name: request.channel_name,
+                    type: ChannelType.GuildText,
+                    permissionOverwrites: [
+                        {
+                            id: category.guild.roles.everyone,
+                            deny: [PermissionsBitField.Flags.ViewChannel],
+                        },
+                        {
+                            id: role, // stop fucking shit on my code
+                            allow: [PermissionsBitField.Flags.ViewChannel],
+                        },
+                    ],
+                    parent: category,
+                });
 
-        // create new channel
-        const promise_channel = category.guild.channels.create({
-            name: request.channel_name,
-            type: ChannelType.GuildText,
-            permissionOverwrites: [
-                {
-                    id: category.guild.everyone,
-                    deny: [PermissionsBitField.Flags.ViewChannel],
-                },
-                {
-                    id: role,
-                    allow: [PermissionsBitField.Flags.ViewChannel],
-                },
-            ],
-            parent: category,
-        });
-        // promise_channel
-        //     .then(() => console.log("Successfully created new channel."))
-        //     .error(console.error);
-        const channel = category.guild.channels.cache.some(
-            (channel) => channel.name === request.channel_name
-        );
-        // update gameChannel
-        gameChannels.push({ channel: channel, role: role });
-
-        // update the select menu, reload it
-        // channel_manage_select.add_option(label=new_game_channel.channel.name)
-
-        // add the new role to the assigneed members
-        for (member of request.members) member.roles.add(role);
-        // delete the request
-        requests.splice(requests.indexOf(request), 1);
+                return channelPromise;
+            })
+            .then((channel) => {
+                newChannel = channel;
+                console.log(channel); // for debugging...
+                settings(newRole, newChannel, request);
+            });
     },
-
     deployCommands() {
         const commands = [];
         const commandsPath = path.join(__dirname, "commands");
@@ -126,3 +117,15 @@ module.exports = {
             .catch(console.error);
     },
 };
+
+// internal utility functions
+function settings(role, channel, request) {
+    // update gameChannel
+    gameChannels.push({ channel: channel, role: role });
+    // update the select menu, reload it
+    // channel_manage_select.add_option(label=new_game_channel.channel.name)
+    // add the new role to the assigneed members
+    for (member of request.members) member.roles.add(role);
+    // delete the request
+    requests.splice(requests.indexOf(request), 1);
+}
