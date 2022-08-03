@@ -48,14 +48,12 @@ module.exports = {
                     .delete()
                     .then((deleted) =>
                         console.log(`Deleted Channel ${deleted.name}`)
-                    )
-                    .error(console.error);
+                    );
                 gameChannel.role
                     .delete()
                     .then((deleted) =>
                         console.log(`Deleted Role ${deleted.name}`)
-                    )
-                    .error(console.error);
+                    );
             });
             await interaction.reply("You successfully deleted game channels.");
         });

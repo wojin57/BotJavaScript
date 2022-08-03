@@ -3,14 +3,16 @@ const {
     ActionRowBuilder,
     SelectMenuBuilder,
 } = require("discord.js");
-const { getGameChannels, findGameChannels } = require("../utils");
+const {
+    getGameChannels,
+    findGameChannels,
+    getJoinedGameChannels,
+} = require("../utils");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("join")
-        .setDescription(
-            "Joins the game channels.(will be moved to client.once in index.js)"
-        ),
+        .setName("manage")
+        .setDescription("Manage the status of joining game channels."),
     async execute(interaction) {
         const gameChannels = getGameChannels();
 
@@ -30,7 +32,6 @@ module.exports = {
 
         const row = new ActionRowBuilder().addComponents(select_menu);
 
-        // await interaction.showActionRow(row);
         await interaction.reply({
             content: "Select every channel you want to join.",
             components: [row],
@@ -46,11 +47,36 @@ module.exports = {
         });
 
         collector.on("collect", async (interaction) => {
-            interaction.values.map((value) => {
-                const gameChannel = findGameChannels(value);
+            const beforeGameChannels = getJoinedGameChannels(
+                interaction.member
+            );
+            let afterGameChannels = [];
+            interaction.values.map((value) =>
+                afterGameChannels.push(findGameChannels(value))
+            );
+            let joinGameChannels = [];
+            let leaveGameChannels = [];
+
+            for (const gameChannel of afterGameChannels) {
+                if (!beforeGameChannels.includes(gameChannel)) {
+                    joinGameChannels.push(gameChannel);
+                }
+            }
+            for (const gameChannel of beforeGameChannels) {
+                if (!afterGameChannels.includes(gameChannel)) {
+                    leaveGameChannels.push(gameChannel);
+                }
+            }
+
+            for (const gameChannel of joinGameChannels) {
                 interaction.member.roles.add(gameChannel.role);
-            });
-            await interaction.reply("You successfully joined game channels.");
+            }
+            for (const gameChannel of leaveGameChannels) {
+                interaction.member.roles.remove(gameChannel.role);
+            }
+            await interaction.reply(
+                "Successfully joined/leaved game channels."
+            );
         });
 
         collector.on("end", async (collect) => {

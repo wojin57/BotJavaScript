@@ -36,7 +36,7 @@ module.exports = {
             (request) => request.channel_name === channel_name
         );
     },
-    initGameChannels(category, roles) {
+    initGameChannels(client, category, roles) {
         for (const channel of category.children.cache.values()) {
             for (const role of roles.cache.values()) {
                 if (
@@ -56,10 +56,8 @@ module.exports = {
             (gameChannel) => gameChannel.channel.name === channel_name
         );
     },
-    // async really needed..?
-    async createGameChannel(category, request) {
-        let newRole = null,
-            newChannel = null;
+    createGameChannel(category, request) {
+        let newRole = null;
         // create new role
         category.guild.roles
             .create({
@@ -78,7 +76,11 @@ module.exports = {
                             deny: [PermissionsBitField.Flags.ViewChannel],
                         },
                         {
-                            id: role, // stop fucking shit on my code
+                            id: role,
+                            allow: [PermissionsBitField.Flags.ViewChannel],
+                        },
+                        {
+                            id: client.user,
                             allow: [PermissionsBitField.Flags.ViewChannel],
                         },
                     ],
@@ -87,11 +89,17 @@ module.exports = {
 
                 return channelPromise;
             })
-            .then((channel) => {
-                newChannel = channel;
-                console.log(channel); // for debugging...
-                settings(newRole, newChannel, request);
-            });
+            .then((channel) => settings(newRole, channel, request));
+    },
+    getJoinedGameChannels(member) {
+        let joinedGameChannels = [];
+        for (const gameChannel of gameChannels) {
+            if (member.roles.cache.some((role) => role === gameChannel.role)) {
+                joinedGameChannels.push(gameChannel);
+            }
+        }
+
+        return joinedGameChannels;
     },
     deployCommands() {
         const commands = [];

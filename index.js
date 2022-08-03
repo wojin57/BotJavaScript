@@ -24,7 +24,7 @@ client.once("ready", () => {
     const category = client.channels.cache.get(categoryId); // Type: [Category]Channel
     const generalChannel = client.channels.cache.get(generalChannelId); // Type: Channel
     const roles = category.guild.roles; // Type: RoleManager
-    initGameChannels(category, roles);
+    initGameChannels(client, category, roles);
 });
 
 client.on("interactionCreate", async (interaction) => {
