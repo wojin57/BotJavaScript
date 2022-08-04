@@ -17,16 +17,14 @@ const { categoryId } = require("../config.json");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("response")
-        .setDescription(
-            "(ADMIN ONLY)Approve/deny for creating a new game channel."
-        )
+        .setName("응답")
+        .setDescription("(관리자 전용)채널 생성 요청을 수락/거절합니다.")
         //.setDefaultMemberPermissions() to make the command available only to admin
         .addStringOption((option) => {
             option
-                .setName("request_channel_name")
+                .setName("채널명")
                 .setDescription(
-                    "Please enter the requested channel name to response."
+                    "(/요청 [채널명] [역할명]) 처리할 요청의 채널명을 입력해주세요."
                 )
                 .setRequired(true);
             for (const request of getRequests()) {
@@ -38,9 +36,7 @@ module.exports = {
             return option;
         }),
     async execute(interaction) {
-        const request_channel_name = interaction.options.getString(
-            "request_channel_name"
-        );
+        const request_channel_name = interaction.options.getString("채널명");
         const request = findRequest(request_channel_name);
 
         const buttons = [

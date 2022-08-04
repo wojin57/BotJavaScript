@@ -3,8 +3,8 @@ const { getGameChannels, getRequests } = require("../utils.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("display")
-        .setDescription("Display current game channels and requests."),
+        .setName("목록")
+        .setDescription("게임 채널 목록과 요청 목록을 보여줍니다."),
     async execute(interaction) {
         const gameChannelNames = getGameChannels().map(
             (gameChannel) => gameChannel.channel.name

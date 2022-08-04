@@ -8,23 +8,23 @@ const {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("request")
-        .setDescription("Request for creating a new game channel.")
+        .setName("요청")
+        .setDescription("새롭게 만들고자 하는 채널을 요청합니다.")
         .addStringOption((option) =>
             option
-                .setName("channel_name")
-                .setDescription("Please enter the channel name.")
+                .setName("채널명")
+                .setDescription("채널 이름을 입력해주세요.")
                 .setRequired(true)
         )
         .addStringOption((option) =>
             option
-                .setName("role_name")
-                .setDescription("Please enter the channel name.")
+                .setName("역할명")
+                .setDescription("역할 이름을 입력해주세요.")
                 .setRequired(true)
         ),
     async execute(interaction) {
-        const channel_name = interaction.options.getString("channel_name");
-        const role_name = interaction.options.getString("role_name");
+        const channel_name = interaction.options.getString("채널명");
+        const role_name = interaction.options.getString("역할명");
         // if the channel already exists, ask to join instead...
         if (findGameChannels(channel_name)) {
             await interaction.reply("The channel already exists.");

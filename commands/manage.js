@@ -11,8 +11,8 @@ const {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("manage")
-        .setDescription("Manage the status of joining game channels."),
+        .setName("참가관리")
+        .setDescription("참가할 채널을 관리합니다."),
     async execute(interaction) {
         const gameChannels = getGameChannels();
 

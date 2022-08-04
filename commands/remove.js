@@ -7,8 +7,8 @@ const { getGameChannels, findGameChannels } = require("../utils");
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("remove")
-        .setDescription("(ADMIN ONLY)Removes the game channels."),
+        .setName("삭제")
+        .setDescription("(관리자 전용)사용하지 않는 채널을 삭제합니다."),
     //.setDefaultMemberPermissions()
     async execute(interaction) {
         const gameChannels = getGameChannels();

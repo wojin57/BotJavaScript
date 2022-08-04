@@ -80,7 +80,7 @@ module.exports = {
                             allow: [PermissionsBitField.Flags.ViewChannel],
                         },
                         {
-                            id: client.user,
+                            id: client.user, // get client
                             allow: [PermissionsBitField.Flags.ViewChannel],
                         },
                     ],
