@@ -16,7 +16,7 @@ module.exports = {
                 } - ${request.members.map((member) => member.displayName)}`
         );
         await interaction.reply(
-            `Game Channels: ${gameChannelNames}\nRequests: ${requestsToString}`
+            `채널 목록: ${gameChannelNames}\n요청 목록: ${requestsToString}`
         );
     },
 };

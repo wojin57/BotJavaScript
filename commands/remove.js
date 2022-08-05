@@ -3,13 +3,18 @@ const {
     ActionRowBuilder,
     SelectMenuBuilder,
 } = require("discord.js");
-const { getGameChannels, findGameChannels } = require("../utils");
+const { getGameChannels, findGameChannels } = require("../utils.js");
+const { adminRoleId } = require("../config.json");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("삭제")
-        .setDescription("(관리자 전용)사용하지 않는 채널을 삭제합니다."),
-    //.setDefaultMemberPermissions()
+        .setDescription("(관리자 전용)사용하지 않는 채널을 삭제합니다.")
+        .setDefaultMemberPermissions({
+            id: adminRoleId,
+            type: 1,
+            permission: true,
+        }),
     async execute(interaction) {
         const gameChannels = getGameChannels();
 
@@ -25,8 +30,6 @@ module.exports = {
         }
 
         const row = new ActionRowBuilder().addComponents(select_menu);
-
-        // await interaction.showActionRow(row);
         await interaction.reply({
             content: "Select every channel you want to delete.",
             components: [row],

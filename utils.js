@@ -2,12 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { REST } = require("@discordjs/rest");
 const { clientId, guildId, token } = require("./config.json");
-const {
-    Routes,
-    PermissionsBitField,
-    ChannelType,
-    Role,
-} = require("discord.js");
+const { Routes, PermissionsBitField, ChannelType } = require("discord.js");
 
 let gameChannels = []; // Array<{ channel: GuildChannel, role: Role }>
 let requests = []; // Array<{ channel_name: String, role_name: String, members: Array<Member>} >
@@ -56,7 +51,7 @@ module.exports = {
             (gameChannel) => gameChannel.channel.name === channel_name
         );
     },
-    createGameChannel(category, request) {
+    createGameChannel(client, category, request) {
         let newRole = null;
         // create new role
         category.guild.roles
@@ -80,7 +75,7 @@ module.exports = {
                             allow: [PermissionsBitField.Flags.ViewChannel],
                         },
                         {
-                            id: client.user, // get client
+                            id: client.user,
                             allow: [PermissionsBitField.Flags.ViewChannel],
                         },
                     ],
@@ -130,8 +125,6 @@ module.exports = {
 function settings(role, channel, request) {
     // update gameChannel
     gameChannels.push({ channel: channel, role: role });
-    // update the select menu, reload it
-    // channel_manage_select.add_option(label=new_game_channel.channel.name)
     // add the new role to the assigneed members
     for (member of request.members) member.roles.add(role);
     // delete the request

@@ -19,7 +19,11 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("응답")
         .setDescription("(관리자 전용)채널 생성 요청을 수락/거절합니다.")
-        //.setDefaultMemberPermissions() to make the command available only to admin
+        .setDefaultMemberPermissions({
+            id: adminRoleId,
+            type: 1,
+            permission: true,
+        })
         .addStringOption((option) => {
             option
                 .setName("채널명")
@@ -42,22 +46,22 @@ module.exports = {
         const buttons = [
             {
                 customId: "approve",
-                label: "Approve",
+                label: "승인",
                 style: ButtonStyle.Success,
                 action: async (interaction) => {
                     const category =
                         interaction.guild.channels.cache.get(categoryId);
-                    createGameChannel(category, request);
-                    await interaction.reply("You have approved the request.");
+                    createGameChannel(client, category, request);
+                    await interaction.reply("채널 생성 요청을 승인하셨습니다.");
                 },
             },
             {
                 customId: "deny",
-                label: "Deny",
+                label: "거절",
                 style: ButtonStyle.Danger,
                 action: async (interaction) => {
                     deleteRequest(request);
-                    await interaction.reply("You have denied the request.");
+                    await interaction.reply("채널 생성 요청을 거절하셨습니다.");
                 },
             },
         ];
@@ -72,7 +76,7 @@ module.exports = {
         );
 
         await interaction.reply({
-            content: `Do you want to approve or deny the request for ${request_channel_name}?`,
+            content: `${request_channel_name} 채널 생성 요청을 처리해주세요.`,
             components: [response_row],
         });
 
@@ -99,7 +103,6 @@ module.exports = {
             console.log("timeout!");
         });
 
-        /*
         const modal = new ModalBuilder()
             .setCustomId("response_modal")
             .setTitle("Create a new game channel")
@@ -107,23 +110,22 @@ module.exports = {
                 new ActionRowBuilder().addComponents(
                     new TextInputBuilder()
                         .setCustomId("channel_name")
-                        .setLable("Channel name")
+                        .setLable("채널명")
                         .setStyle(TextInputStyle.Short)
                         .setValue(request.channel_name)
                 ),
                 new ActionRowBuilder().addComponents(
                     new TextInputBuilder()
                         .setCustomId("role_name")
-                        .setLable("Role name")
+                        .setLable("역할명")
                         .setStyle(TextInputStyle.Short)
                         .setValue(request.role_name)
                 )
             );
-        //await interaction.showModal(modal);
 
         await interaction.reply({
             content: "Creating text input menus...",
-            components: modal.components,
+            components: [modal],
         });
 
         const response_modal_filter = (interaction) => {
@@ -137,14 +139,11 @@ module.exports = {
 
         collector.on("collect", async (interaction) => {
             interaction.values.map((value) => {});
-            await interaction.reply(
-                "You successfully responsed game channels."
-            );
+            await interaction.reply("성공적으로 요청을 처리했습니다.");
         });
 
         collector.on("end", async (collect) => {
             console.log("timeout!");
         });
-        */
     },
 };

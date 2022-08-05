@@ -1,10 +1,5 @@
 const { SlashCommandBuilder } = require("discord.js");
-const {
-    addRequest,
-    getRequests,
-    findRequest,
-    findGameChannels,
-} = require("../utils.js");
+const { addRequest, findRequest, findGameChannels } = require("../utils.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -27,7 +22,7 @@ module.exports = {
         const role_name = interaction.options.getString("역할명");
         // if the channel already exists, ask to join instead...
         if (findGameChannels(channel_name)) {
-            await interaction.reply("The channel already exists.");
+            await interaction.reply("이미 채널이 존재합니다.");
             return;
         }
 
