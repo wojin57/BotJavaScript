@@ -29,7 +29,12 @@ module.exports = {
         const request = findRequest(channel_name);
 
         if (request) {
-            request.members.push(interaction.member);
+            if (request.members.includes(interaction.member)) {
+                await interaction.reply("이미 요청한 채널입니다.");
+                return;
+            } else {
+                request.members.push(interaction.member);
+            }
         } else {
             addRequest({
                 channel_name: channel_name,
@@ -37,6 +42,6 @@ module.exports = {
                 members: [interaction.member],
             });
         }
-        await interaction.reply("Your request has been successfully added!");
+        await interaction.reply("요청이 성공적으로 등록되었습니다!");
     },
 };

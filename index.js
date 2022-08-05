@@ -2,7 +2,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token, categoryId, generalChannelId } = require("./config.json");
-const { initGameChannels, deployCommands } = require("./utils.js");
+const {
+    initGameChannels,
+    deployCommands,
+    setAdminRole,
+} = require("./utils.js");
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -23,12 +27,12 @@ client.once("ready", () => {
     // need to be changed in config.json for real use
     const category = client.channels.cache.get(categoryId);
     const roles = category.guild.roles;
-    initGameChannels(client, category, roles);
+    initGameChannels(category, roles);
 });
 
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
-    if (!interaction.channel.id === generalChannelId) {
+    if (interaction.channel.id !== generalChannelId) {
         await interaction.reply({
             content: "명령어 채널에서 사용해주세요.",
             ephemeral: true,

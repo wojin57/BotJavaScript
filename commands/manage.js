@@ -11,7 +11,7 @@ const {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("참가관리")
+        .setName("관리")
         .setDescription("참가할 채널을 관리합니다."),
     async execute(interaction) {
         const gameChannels = getGameChannels();
@@ -33,7 +33,7 @@ module.exports = {
         const row = new ActionRowBuilder().addComponents(select_menu);
 
         await interaction.reply({
-            content: "Select every channel you want to join.",
+            content: "참가할 채널만 모두 선택해주세요.",
             components: [row],
         });
 
@@ -74,9 +74,7 @@ module.exports = {
             for (const gameChannel of leaveGameChannels) {
                 interaction.member.roles.remove(gameChannel.role);
             }
-            await interaction.reply(
-                "Successfully joined/leaved game channels."
-            );
+            await interaction.reply("성공적으로 참가할 채널을 수정했습니다.");
         });
 
         collector.on("end", async (collect) => {

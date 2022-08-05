@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { REST } = require("@discordjs/rest");
-const { clientId, guildId, token } = require("./config.json");
+const { clientId, guildId, token, adminRoleId } = require("./config.json");
 const { Routes, PermissionsBitField, ChannelType } = require("discord.js");
 
 let gameChannels = []; // Array<{ channel: GuildChannel, role: Role }>
@@ -15,6 +15,12 @@ module.exports = {
         gameChannels.push(gameChannel);
     },
     deleteGameChannel(gameChannel) {
+        gameChannel.channel
+            .delete()
+            .then((deleted) => console.log(`Deleted Channel ${deleted.name}`));
+        gameChannel.role
+            .delete()
+            .then((deleted) => console.log(`Deleted Role ${deleted.name}`));
         gameChannels.splice(gameChannels.indexOf(gameChannel), 1);
     },
     getRequests() {
@@ -31,7 +37,7 @@ module.exports = {
             (request) => request.channel_name === channel_name
         );
     },
-    initGameChannels(client, category, roles) {
+    initGameChannels(category, roles) {
         for (const channel of category.children.cache.values()) {
             for (const role of roles.cache.values()) {
                 if (

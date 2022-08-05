@@ -3,19 +3,30 @@ const {
     ActionRowBuilder,
     SelectMenuBuilder,
 } = require("discord.js");
-const { getGameChannels, findGameChannels } = require("../utils.js");
+const {
+    getGameChannels,
+    findGameChannels,
+    deleteGameChannel,
+} = require("../utils.js");
 const { adminRoleId } = require("../config.json");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("삭제")
-        .setDescription("(관리자 전용)사용하지 않는 채널을 삭제합니다.")
-        .setDefaultMemberPermissions({
-            id: adminRoleId,
-            type: 1,
-            permission: true,
-        }),
+        .setDescription("(관리자 전용)사용하지 않는 채널을 삭제합니다."),
     async execute(interaction) {
+        if (
+            !interaction.member.roles.cache.some(
+                (role) => role.id === adminRoleId
+            )
+        ) {
+            await interaction.reply({
+                content: "관리자만 사용할 수 있습니다.",
+                ephemeral: true,
+            });
+            return;
+        }
+
         const gameChannels = getGameChannels();
 
         const select_menu = new SelectMenuBuilder()
@@ -31,7 +42,7 @@ module.exports = {
 
         const row = new ActionRowBuilder().addComponents(select_menu);
         await interaction.reply({
-            content: "Select every channel you want to delete.",
+            content: "삭제할 채널들을 선택해주세요.",
             components: [row],
         });
 
@@ -45,20 +56,10 @@ module.exports = {
         });
 
         collector.on("collect", async (interaction) => {
-            interaction.values.map((value) => {
-                const gameChannel = findGameChannels(value);
-                gameChannel.channel
-                    .delete()
-                    .then((deleted) =>
-                        console.log(`Deleted Channel ${deleted.name}`)
-                    );
-                gameChannel.role
-                    .delete()
-                    .then((deleted) =>
-                        console.log(`Deleted Role ${deleted.name}`)
-                    );
-            });
-            await interaction.reply("You successfully deleted game channels.");
+            interaction.values.map((value) =>
+                deleteGameChannel(findGameChannels(value))
+            );
+            await interaction.reply("성공적으로 채널을 삭제했습니다.");
         });
 
         collector.on("end", async (collect) => {

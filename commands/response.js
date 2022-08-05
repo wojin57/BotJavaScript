@@ -13,22 +13,17 @@ const {
     createGameChannel,
     deleteRequest,
 } = require("../utils.js");
-const { categoryId } = require("../config.json");
+const { categoryId, adminRoleId } = require("../config.json");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("응답")
         .setDescription("(관리자 전용)채널 생성 요청을 수락/거절합니다.")
-        .setDefaultMemberPermissions({
-            id: adminRoleId,
-            type: 1,
-            permission: true,
-        })
         .addStringOption((option) => {
             option
                 .setName("채널명")
                 .setDescription(
-                    "(/요청 [채널명] [역할명]) 처리할 요청의 채널명을 입력해주세요."
+                    "(/응답 [채널명]) 처리할 요청의 채널명을 입력해주세요."
                 )
                 .setRequired(true);
             for (const request of getRequests()) {
@@ -37,9 +32,22 @@ module.exports = {
                     value: request.channel_name,
                 });
             }
+
             return option;
         }),
     async execute(interaction) {
+        if (
+            !interaction.member.roles.cache.some(
+                (role) => role.id === adminRoleId
+            )
+        ) {
+            await interaction.reply({
+                content: "관리자만 사용할 수 있습니다.",
+                ephemeral: true,
+            });
+            return;
+        }
+
         const request_channel_name = interaction.options.getString("채널명");
         const request = findRequest(request_channel_name);
 
@@ -51,7 +59,7 @@ module.exports = {
                 action: async (interaction) => {
                     const category =
                         interaction.guild.channels.cache.get(categoryId);
-                    createGameChannel(client, category, request);
+                    createGameChannel(interaction.client, category, request);
                     await interaction.reply("채널 생성 요청을 승인하셨습니다.");
                 },
             },
@@ -103,47 +111,47 @@ module.exports = {
             console.log("timeout!");
         });
 
-        const modal = new ModalBuilder()
-            .setCustomId("response_modal")
-            .setTitle("Create a new game channel")
-            .addComponents(
-                new ActionRowBuilder().addComponents(
-                    new TextInputBuilder()
-                        .setCustomId("channel_name")
-                        .setLable("채널명")
-                        .setStyle(TextInputStyle.Short)
-                        .setValue(request.channel_name)
-                ),
-                new ActionRowBuilder().addComponents(
-                    new TextInputBuilder()
-                        .setCustomId("role_name")
-                        .setLable("역할명")
-                        .setStyle(TextInputStyle.Short)
-                        .setValue(request.role_name)
-                )
-            );
+        // const modal = new ModalBuilder()
+        //     .setCustomId("response_modal")
+        //     .setTitle("Create a new game channel")
+        //     .addComponents(
+        //         new ActionRowBuilder().addComponents(
+        //             new TextInputBuilder()
+        //                 .setCustomId("channel_name")
+        //                 .setLable("채널명")
+        //                 .setStyle(TextInputStyle.Short)
+        //                 .setValue(request.channel_name)
+        //         ),
+        //         new ActionRowBuilder().addComponents(
+        //             new TextInputBuilder()
+        //                 .setCustomId("role_name")
+        //                 .setLable("역할명")
+        //                 .setStyle(TextInputStyle.Short)
+        //                 .setValue(request.role_name)
+        //         )
+        //     );
 
-        await interaction.reply({
-            content: "Creating text input menus...",
-            components: [modal],
-        });
+        // await interaction.reply({
+        //     content: "Creating text input menus...",
+        //     components: [modal],
+        // });
 
-        const response_modal_filter = (interaction) => {
-            return interaction.customId === "response_modal";
-        };
+        // const response_modal_filter = (interaction) => {
+        //     return interaction.customId === "response_modal";
+        // };
 
-        const collector = interaction.channel.createMessageComponentCollector({
-            filter: response_modal_filter,
-            time: 60 * 1000,
-        });
+        // const collector = interaction.channel.createMessageComponentCollector({
+        //     filter: response_modal_filter,
+        //     time: 60 * 1000,
+        // });
 
-        collector.on("collect", async (interaction) => {
-            interaction.values.map((value) => {});
-            await interaction.reply("성공적으로 요청을 처리했습니다.");
-        });
+        // collector.on("collect", async (interaction) => {
+        //     //interaction.values.map((value) => {});
+        //     await interaction.reply("성공적으로 요청을 처리했습니다.");
+        // });
 
-        collector.on("end", async (collect) => {
-            console.log("timeout!");
-        });
+        // collector.on("end", async (collect) => {
+        //     console.log("timeout!");
+        // });
     },
 };
