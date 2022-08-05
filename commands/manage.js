@@ -16,11 +16,24 @@ module.exports = {
     async execute(interaction) {
         const gameChannels = getGameChannels();
 
-        const select_menu = new SelectMenuBuilder()
-            .setCustomId("join_select")
-            .setMaxValues(gameChannels.length);
+        const numMenus = gameChannels.length / 24;
+        const select_menus = [];
+        for (let i = 0; i < numMenus; i++) {
+            const maxValue = i == numMenus - 1 ? gameChannels.length % 24 : 24;
+            const select_menu = new SelectMenuBuilder()
+                .setCustomId(`join_select_${i}`)
+                .setMaxValues(maxValue);
+            select_menus.push(select_menu);
+        }
 
-        for (const gameChannel of gameChannels) {
+        let countChannel = 0;
+        for (let select_menu of select_menus) {
+            select_menu.addOptions({
+                label: "해당업음",
+                value: "해당없음",
+            });
+
+            let gameChannel = gameChannels[countChannel++];
             select_menu.addOptions({
                 label: gameChannel.channel.name,
                 value: gameChannel.channel.name,
