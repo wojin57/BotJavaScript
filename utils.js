@@ -26,6 +26,10 @@ module.exports = {
     getRequests() {
         return requests;
     },
+    renameRequest(request, newChannelName, newRoleName) {
+        request.channel_name = newChannelName;
+        request.role_name = newRoleName;
+    },
     addRequest(request) {
         requests.push(request);
     },

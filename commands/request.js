@@ -4,7 +4,9 @@ const { addRequest, findRequest, findGameChannels } = require("../utils.js");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("요청")
-        .setDescription("새롭게 만들고자 하는 채널을 요청합니다.")
+        .setDescription(
+            "(/요청 [채널명] [역할명])새롭게 만들고자 하는 채널을 요청합니다."
+        )
         .addStringOption((option) =>
             option
                 .setName("채널명")
@@ -20,7 +22,7 @@ module.exports = {
     async execute(interaction) {
         const channel_name = interaction.options.getString("채널명");
         const role_name = interaction.options.getString("역할명");
-        // if the channel already exists, ask to join instead...
+
         if (findGameChannels(channel_name)) {
             await interaction.reply("이미 채널이 존재합니다.");
             return;

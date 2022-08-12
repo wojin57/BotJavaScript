@@ -2,6 +2,8 @@ const {
     SlashCommandBuilder,
     ActionRowBuilder,
     SelectMenuBuilder,
+    ButtonBuilder,
+    ButtonStyle,
 } = require("discord.js");
 const {
     getGameChannels,
@@ -16,24 +18,11 @@ module.exports = {
     async execute(interaction) {
         const gameChannels = getGameChannels();
 
-        const numMenus = gameChannels.length / 24;
-        const select_menus = [];
-        for (let i = 0; i < numMenus; i++) {
-            const maxValue = i == numMenus - 1 ? gameChannels.length % 24 : 24;
-            const select_menu = new SelectMenuBuilder()
-                .setCustomId(`join_select_${i}`)
-                .setMaxValues(maxValue);
-            select_menus.push(select_menu);
-        }
+        const select_menu = new SelectMenuBuilder()
+            .setCustomId("join_select")
+            .setMaxValues(gameChannels.length);
 
-        let countChannel = 0;
-        for (let select_menu of select_menus) {
-            select_menu.addOptions({
-                label: "해당업음",
-                value: "해당없음",
-            });
-
-            let gameChannel = gameChannels[countChannel++];
+        for (const gameChannel of gameChannels) {
             select_menu.addOptions({
                 label: gameChannel.channel.name,
                 value: gameChannel.channel.name,
@@ -43,23 +32,83 @@ module.exports = {
             });
         }
 
-        const row = new ActionRowBuilder().addComponents(select_menu);
+        const selectButtons = [
+            {
+                customId: "yes",
+                label: "있음",
+                style: ButtonStyle.Success,
+                action: async (interaction) => {
+                    // open select menu as normal
+                },
+            },
+            {
+                customId: "no",
+                label: "없음",
+                style: ButtonStyle.Danger,
+                action: async (interaction) => {
+                    // delete all roles in gameChannel for interaction.member
+                    await interaction.reply(
+                        "목록 내 채널에서 전부 나오셨습니다."
+                    );
+                },
+            },
+        ];
+
+        const buttonRow = new ActionRowBuilder().addComponents(
+            selectButtons.map((button) => {
+                return new ButtonBuilder()
+                    .setCustomId(button.customId)
+                    .setLabel(button.label)
+                    .setStyle(button.style);
+            })
+        );
+
+        await interaction.reply({
+            content: `채널 목록 내에서 참가할 채널이 있으신가요?`,
+            components: [buttonRow],
+        });
+
+        const buttonFilter = (interaction) => {
+            return selectButtons.filter(
+                (button) => button.customId === interaction.customId
+            );
+        };
+
+        const buttonCollector =
+            interaction.channel.createMessageComponentCollector({
+                filter: buttonFilter,
+                time: 60 * 1000,
+            });
+
+        buttonCollector.on("collect", async (interaction) => {
+            const button = selectButtons.find(
+                (button) => button.customId === interaction.customId
+            );
+            await button.action(interaction);
+        });
+
+        buttonCollector.on("end", async (collect) => {
+            console.log("timeout!");
+        });
+
+        const selectRow = new ActionRowBuilder().addComponents(select_menu);
 
         await interaction.reply({
             content: "참가할 채널만 모두 선택해주세요.",
-            components: [row],
+            components: [selectRow],
         });
 
-        const join_select_filter = (interaction) => {
-            return interaction.customId === "join_select";
+        const selectFilter = (interaction) => {
+            return selectRow.customId === interaction.customId;
         };
 
-        const collector = interaction.channel.createMessageComponentCollector({
-            filter: join_select_filter,
-            time: 60 * 1000,
-        });
+        const selectCollector =
+            interaction.channel.createMessageComponentCollector({
+                filter: selectFilter,
+                time: 60 * 1000,
+            });
 
-        collector.on("collect", async (interaction) => {
+        selectCollector.on("collect", async (interaction) => {
             const beforeGameChannels = getJoinedGameChannels(
                 interaction.member
             );
@@ -90,7 +139,7 @@ module.exports = {
             await interaction.reply("성공적으로 참가할 채널을 수정했습니다.");
         });
 
-        collector.on("end", async (collect) => {
+        selectCollector.on("end", async (collect) => {
             console.log("timeout!");
         });
     },
