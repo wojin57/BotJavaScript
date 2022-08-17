@@ -33,8 +33,6 @@ module.exports = {
                     value: request.channel_name,
                 });
             }
-
-            console.log(`choices: ${option.choices}`); // for debugging
             return option;
         })
         .addStringOption((option) =>
