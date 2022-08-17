@@ -1,7 +1,6 @@
 const {
     SlashCommandBuilder,
     ActionRowBuilder,
-    ModalActionRowComponentBuilder,
     ModalBuilder,
     ButtonBuilder,
     TextInputBuilder,
@@ -20,11 +19,13 @@ const { categoryId, adminRoleId } = require("../config.json");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("응답")
-        .setDescription("(관리자 전용)채널 생성 요청을 수락/거절합니다.")
+        .setDescription(
+            "(/응답 [기존채널명] <새채널명> <새역할명>) 채널 생성 요청을 수락/거절하는 관리자 전용 명령어입니다."
+        )
         .addStringOption((option) => {
             option
-                .setName("채널명")
-                .setDescription("처리할 요청의 채널명을 입력해주세요.")
+                .setName("기존채널명")
+                .setDescription("처리할 요청의 원래 채널명을 입력해주세요.")
                 .setRequired(true);
             for (const request of getRequests()) {
                 option.addChoices({
@@ -33,8 +34,19 @@ module.exports = {
                 });
             }
 
+            console.log(`choices: ${option.choices}`); // for debugging
             return option;
-        }),
+        })
+        .addStringOption((option) =>
+            option
+                .setName("새채널명")
+                .setDescription("채널명을 바꾸고 싶을 경우에만 입력해주세요.")
+        )
+        .addStringOption((option) =>
+            option
+                .setName("새역할명")
+                .setDescription("역할명을 바꾸고 싶을 경우에만 입력해주세요.")
+        ),
     async execute(interaction) {
         if (
             !interaction.member.roles.cache.some(
@@ -48,7 +60,9 @@ module.exports = {
             return;
         }
 
-        const requestChannelName = interaction.options.getString("채널명");
+        const requestChannelName = interaction.options.getString("기존채널명");
+        const newChannelName = interaction.options.getString("새채널명");
+        const newRoleName = interaction.options.getString("새역할명");
         const request = findRequest(requestChannelName);
 
         const buttons = [
@@ -59,62 +73,10 @@ module.exports = {
                 action: async (interaction) => {
                     const category =
                         interaction.guild.channels.cache.get(categoryId);
+
+                    renameRequest(request, newChannelName, newRoleName);
                     createGameChannel(interaction.client, category, request);
-                    await interaction.reply("채널 생성 요청을 승인하셨씁니다.");
-                    // const modal = new ModalBuilder()
-                    //     .setCustomId("responseModal")
-                    //     .setTitle("최종 확인")
-                    //     .addComponents(
-                    //         new ActionRowBuilder().addComponents(
-                    //             new TextInputBuilder()
-                    //                 .setCustomId("channelName")
-                    //                 .setLabel("채널명")
-                    //                 .setStyle(TextInputStyle.Short)
-                    //                 .setValue(request.channel_name)
-                    //         ),
-                    //         new ActionRowBuilder().addComponents(
-                    //             new TextInputBuilder()
-                    //                 .setCustomId("roleName")
-                    //                 .setLabel("역할명")
-                    //                 .setStyle(TextInputStyle.Short)
-                    //                 .setValue(request.role_name)
-                    //         )
-                    //     );
-
-                    // await interaction.reply({
-                    //     content: "Creating text input menus...",
-                    //     components: [modal],
-                    // });
-
-                    // const response_modal_filter = (interaction) => {
-                    //     return interaction.customId === "responseModal";
-                    // };
-
-                    // const collector =
-                    //     interaction.channel.createMessageComponentCollector({
-                    //         filter: response_modal_filter,
-                    //         time: 60 * 1000,
-                    //     });
-
-                    // collector.on("collect", async (interaction) => {
-                    //     const newChannelName =
-                    //         interaction.fields.getTextInputValue("channelName");
-                    //     const newRoleName =
-                    //         interaction.fields.getTextInputValue("roleName");
-                    //     renameRequest(request, newChannelName, newRoleName);
-                    //     createGameChannel(
-                    //         interaction.client,
-                    //         category,
-                    //         request
-                    //     );
-                    //     await interaction.reply(
-                    //         "채널 생성 요청을 승인하셨습니다."
-                    //     );
-                    // });
-
-                    // collector.on("end", async (collect) => {
-                    //     console.log("timeout!");
-                    // });
+                    await interaction.reply("채널 생성 요청을 승인하셨습니다.");
                 },
             },
             {
@@ -164,48 +126,5 @@ module.exports = {
         responseCollector.on("end", async (collect) => {
             console.log("timeout!");
         });
-
-        // const modal = new ModalBuilder()
-        //     .setCustomId("response_modal")
-        //     .setTitle("Create a new game channel")
-        //     .addComponents(
-        //         new ActionRowBuilder().addComponents(
-        //             new TextInputBuilder()
-        //                 .setCustomId("channel_name")
-        //                 .setLable("채널명")
-        //                 .setStyle(TextInputStyle.Short)
-        //                 .setValue(request.channel_name)
-        //         ),
-        //         new ActionRowBuilder().addComponents(
-        //             new TextInputBuilder()
-        //                 .setCustomId("role_name")
-        //                 .setLable("역할명")
-        //                 .setStyle(TextInputStyle.Short)
-        //                 .setValue(request.role_name)
-        //         )
-        //     );
-
-        // await interaction.reply({
-        //     content: "Creating text input menus...",
-        //     components: [modal],
-        // });
-
-        // const response_modal_filter = (interaction) => {
-        //     return interaction.customId === "response_modal";
-        // };
-
-        // const collector = interaction.channel.createMessageComponentCollector({
-        //     filter: response_modal_filter,
-        //     time: 60 * 1000,
-        // });
-
-        // collector.on("collect", async (interaction) => {
-        //     //interaction.values.map((value) => {});
-        //     await interaction.reply("성공적으로 요청을 처리했습니다.");
-        // });
-
-        // collector.on("end", async (collect) => {
-        //     console.log("timeout!");
-        // });
     },
 };
