@@ -13,9 +13,9 @@ module.exports = {
         let requestsToString = getRequests()
             .map(
                 (request) =>
-                    `${request.channel_name} - ${
+                    `${request.channel_name}(${
                         request.role_name
-                    } - ${request.members.map((member) => member.displayName)}`
+                    }): ${request.members.map((member) => member.displayName)}`
             )
             .join("\n");
 

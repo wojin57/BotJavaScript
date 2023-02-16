@@ -1,14 +1,11 @@
 const {
     SlashCommandBuilder,
     ActionRowBuilder,
-    ModalBuilder,
     ButtonBuilder,
-    TextInputBuilder,
-    TextInputStyle,
     ButtonStyle,
 } = require("discord.js");
 const {
-    getRequests,
+    getChoices,
     findRequest,
     createGameChannel,
     deleteRequest,
@@ -22,19 +19,14 @@ module.exports = {
         .setDescription(
             "(/응답 [기존채널명] <새채널명> <새역할명>) 채널 생성 요청을 수락/거절하는 관리자 전용 명령어입니다."
         )
-        .addStringOption((option) => {
-            option
-                .setName("기존채널명")
-                .setDescription("처리할 요청의 원래 채널명을 입력해주세요.")
-                .setRequired(true);
-            for (const request of getRequests()) {
-                option.addChoices({
-                    name: request.channel_name,
-                    value: request.channel_name,
-                });
-            }
-            return option;
-        })
+        .addStringOption(
+            (option) =>
+                option
+                    .setName("기존채널명")
+                    .setDescription("처리할 요청의 원래 채널명을 입력해주세요.")
+                    .setRequired(true)
+                    .addChoices(...getChoices()) // Spread syntax
+        )
         .addStringOption((option) =>
             option
                 .setName("새채널명")

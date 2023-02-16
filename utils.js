@@ -106,6 +106,14 @@ module.exports = {
 
         return joinedGameChannels;
     },
+    getChoices() {
+        choices = requests.map((request) => ({
+            name: request.channel_name,
+            value: request.channel_name,
+        }));
+
+        return choices;
+    },
     deployCommands() {
         const commands = [];
         const commandsPath = path.join(__dirname, "commands");
